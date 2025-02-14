@@ -1,10 +1,10 @@
 import cv2  
-from mistralai.client import MistralClient
-import time
+from mistralai import Mistral
 import pytesseract
 import numpy as np
 import os
 from docx import Document
+from dotenv import load_dotenv
 #from langchain.prompts import PromptTemplate #incase of further optimizing this agent we can use langchain or if the guideline doc is very big also
 
 
@@ -13,14 +13,17 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 
 #opening the guidelines file and reading file
-doc_path = "F:\intern Synera AI\intern-ai\Fastener_Types_Manual.docx"
+doc_path = r"F:\intern Synera AI\intern-ai\Fastener_Types_Manual.docx"
 doc = Document(doc_path)
 
 guidelines = "\n".join([para.text for para in doc.paragraphs])
 
-
 #Open AI requesting and API
-client = MistralClient(api_key = "5UDx2tPbp37EYvtRhLGo7MLvOiMi3Ecs")
+# load_dotenv()
+# mistral_api_key = os.getenv("MISTRAL_API_KEY")
+# client = Mistral(api_key = mistral_api_key )
+
+client = Mistral(api_key="Cc8p5DVZUnwOnRk5C6YekMhcQTTHXGIk")
 
 # Function to get fastener recommendations
 def get_fastener_recommendation(image_description, guidelines):
@@ -35,21 +38,18 @@ def get_fastener_recommendation(image_description, guidelines):
     """
 
     
-    print("Sending request to Mistral AI...")  # Debugging print
-    response = client.chat(
-        model="mistral-tiny",  
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ]
+    print("\nSending request to Mistral AI...\n")  # Debugging print
+    response = client.chat.complete(
+        model="mistral-small",  
+        messages=[{"role": "user", "content": prompt}]
     )
-    print("Response received!")  # Debugging print
+    print("\nResponse received!\n")  # Debugging print
     return response.choices[0].message.content
 
     
     
 # Load the image folder
-image_folder = "F:\intern Synera AI\intern-ai\Sample Images"
+image_folder = r"F:\intern Synera AI\intern-ai\Sample Images"
 
 #creating a list of .png files
 image_files = [f for f in os.listdir(image_folder) if f.endswith(".png")]
@@ -64,7 +64,7 @@ for image_file in image_files:
 
     else:
         #converting to gray scale
-        gray = cv2.cvtColor(image,cv2.COLOR_BAYER_BGGR2GRAY)
+        gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 
         #extract text from gray image
         text = pytesseract.image_to_string(gray)
@@ -76,7 +76,7 @@ for image_file in image_files:
 
         # Display the image in a new window
         cv2.imshow("Edges", edges)
-        print("Number of edges", edge_count)
+        print("\nNumber of edges:", edge_count)
 
         # Wait for a key press/2 sec and close the window
         cv2.waitKey(2000)
@@ -84,10 +84,6 @@ for image_file in image_files:
 
         image_description = f"Detected text: {text.strip()}. Edge count: {edge_count}."
 
+        answer = get_fastener_recommendation(image_description, guidelines)
 
-
-
-
-answer = get_fastener_recommendation(image_description, guidelines)
-
-print("Fastener Recommendation:", answer)
+        print(f"\nFastener Recommendation for {image_file}: {answer}")
