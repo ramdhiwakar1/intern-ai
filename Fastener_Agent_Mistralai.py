@@ -4,7 +4,7 @@ import pytesseract
 import numpy as np
 import os
 from docx import Document
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 #from langchain.prompts import PromptTemplate #incase of further optimizing this agent we can use langchain or if the guideline doc is very big also
 
 
@@ -12,11 +12,16 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 
 
-#opening the guidelines file and reading file
+#opening the fastener guidelines file and reading file
 doc_path = r"F:\intern Synera AI\intern-ai\Fastener_Types_Manual.docx"
 doc = Document(doc_path)
-
 guidelines = "\n".join([para.text for para in doc.paragraphs])
+
+#opening machine guidelines file and reading file
+machine_doc_path = r"F:\intern Synera AI\intern-ai\Manufacturing Expert Manual.docx"
+machine_doc = Document(machine_doc_path)
+machine_guidelines = "\n".join([para.text for para in machine_doc.paragraphs])
+
 
 #Open AI requesting and API
 # load_dotenv()
@@ -26,15 +31,20 @@ guidelines = "\n".join([para.text for para in doc.paragraphs])
 client = Mistral(api_key="Cc8p5DVZUnwOnRk5C6YekMhcQTTHXGIk")
 
 # Function to get fastener recommendations
-def get_fastener_recommendation(image_description, guidelines):
-    prompt = f"""You are an AI assistant that provides fastener recommendations based on the following guidelines:
-
+def get_fastener_recommendation(image_description, guidelines,machine_guidelines):
+    prompt = f"""You are an AI assistant that provides fastener and machine recommendations.
+    Fastener recommendation guidelines:
     {guidelines}
-
+    machine recommendation guidelines:
+    {machine_guidelines}
     Image analysis for fastner recomendation:
     {image_description}
 
-    Based on the guidelines and image analysis, suggest the most suitable fastner type and explain why:
+    Based on the guidelines and image analysis, suggest:
+    1. The most suitable fastener type.
+    2. The best manufacturing machine for this geometry.
+    Explain your reasoning clearly.
+
     """
 
     
@@ -84,6 +94,7 @@ for image_file in image_files:
 
         image_description = f"Detected text: {text.strip()}. Edge count: {edge_count}."
 
-        answer = get_fastener_recommendation(image_description, guidelines)
+        answer = get_fastener_recommendation(image_description, guidelines,machine_guidelines)
 
         print(f"\nFastener Recommendation for {image_file}: {answer}")
+        print("\n"*10)
