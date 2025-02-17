@@ -79,7 +79,7 @@ def image_analysis(image_path):
         print("\nNumber of edges:", edge_count)
 
         # Wait for a key press/2 sec and close the window
-        cv2.waitKey(2000)
+        cv2.waitKey(0)
         cv2.destroyAllWindows()
 
         image_description = (
@@ -149,6 +149,7 @@ while choose_again:
 
 #calling image analysis function
 if image_analysis != None:
+    image_description = image_analysis(selected_image)
     image_description = image_analysis(selected_image)
 
     
